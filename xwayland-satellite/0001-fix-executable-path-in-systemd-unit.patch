@@ -1,0 +1,25 @@
+From 451fa6fe398d2313e00fd92e0fedefa152a55f3d Mon Sep 17 00:00:00 2001
+From: Fabio Valentini <decathorpe@gmail.com>
+Date: Thu, 24 Apr 2025 14:14:19 +0200
+Subject: [PATCH] fix executable path in systemd unit
+
+---
+ resources/xwayland-satellite.service | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/resources/xwayland-satellite.service b/resources/xwayland-satellite.service
+index 060ab6b..f68cefd 100644
+--- a/resources/xwayland-satellite.service
++++ b/resources/xwayland-satellite.service
+@@ -8,7 +8,7 @@ Requisite=graphical-session.target
+ [Service]
+ Type=notify
+ NotifyAccess=all
+-ExecStart=/usr/local/bin/xwayland-satellite
++ExecStart=/usr/bin/xwayland-satellite
+ StandardOutput=journal
+ 
+ [Install]
+-- 
+2.49.0
+
