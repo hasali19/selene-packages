@@ -1,0 +1,105 @@
+name: Build
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Find changed packages
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.packages.outputs.packages }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: packages
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          all=$(printf '%s\n' ./*/*.spec | cut -d/ -f2)
+          if [ "${{ github.event_name }}" != pull_request ]; then
+            packages=$all
+          else
+            changed=$(git diff --name-only "$BASE_SHA...$HEAD_SHA")
+            if grep -qE '^(\.copr/|\.github/workflows/build\.yml$)' <<<"$changed"; then
+              packages=$all
+            else
+              packages=$(comm -12 <(cut -d/ -f1 <<<"$changed" | sort -u) <(sort <<<"$all"))
+            fi
+          fi
+          echo "packages=$(jq -cnR '[inputs | select(length > 0)]' <<<"$packages")" >> "$GITHUB_OUTPUT"
+
+  srpm:
+    name: SRPM (${{ matrix.package }})
+    needs: changes
+    if: needs.changes.outputs.packages != '[]'
+    runs-on: ubuntu-latest
+    container: registry.fedoraproject.org/fedora:44
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.changes.outputs.packages) }}
+    steps:
+      - run: dnf -y install git make rpm-build redhat-rpm-config
+
+      - uses: actions/checkout@v4
+
+      - working-directory: ${{ matrix.package }}
+        run: >-
+          make -f "$GITHUB_WORKSPACE/.copr/Makefile" srpm
+          outdir="$RUNNER_TEMP/srpm"
+          spec="$GITHUB_WORKSPACE/${{ matrix.package }}/${{ matrix.package }}.spec"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: srpm-${{ matrix.package }}
+          path: ${{ runner.temp }}/srpm/*.src.rpm
+
+  rpm:
+    name: RPM (${{ matrix.package }}, ${{ matrix.chroot.name }})
+    needs: [changes, srpm]
+    runs-on: ubuntu-latest
+    container: ${{ matrix.chroot.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.changes.outputs.packages) }}
+        chroot:
+          - name: fedora-44
+            image: registry.fedoraproject.org/fedora:44
+          - name: almalinux-10
+            image: docker.io/library/almalinux:10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: srpm-${{ matrix.package }}
+          path: srpm
+
+      - if: startsWith(matrix.chroot.name, 'fedora-')
+        run: dnf -y install rpm-build redhat-rpm-config 'dnf5-command(builddep)'
+
+      - if: startsWith(matrix.chroot.name, 'almalinux-')
+        run: |
+          dnf -y install epel-release dnf-plugins-core rpm-build
+          dnf config-manager --set-enabled crb
+          dnf config-manager --add-repo 'https://repo.almalinux.org/almalinux/$releasever/devel/$basearch/os/'
+
+      - run: dnf -y builddep srpm/*.src.rpm
+
+      - run: rpmbuild --rebuild --define "_rpmdir $PWD/rpms" srpm/*.src.rpm
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rpms-${{ matrix.package }}-${{ matrix.chroot.name }}
+          path: rpms/
