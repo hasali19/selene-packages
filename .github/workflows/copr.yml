@@ -1,0 +1,47 @@
+name: Copr
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  COPR_PROJECT: hasali19/selene
+
+jobs:
+  changes:
+    name: Find changed packages
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.packages.outputs.packages }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: packages
+        uses: ./.github/actions/changed-packages
+        with:
+          base: ${{ github.event.before }}
+
+  build:
+    name: Copr build (${{ matrix.package }})
+    needs: changes
+    if: needs.changes.outputs.packages != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.changes.outputs.packages) }}
+    steps:
+      - run: pipx install copr-cli
+
+      - env:
+          COPR_CONFIG: ${{ secrets.COPR_CONFIG }}
+          PACKAGE: ${{ matrix.package }}
+        run: |
+          mkdir -p ~/.config
+          printf '%s\n' "$COPR_CONFIG" > ~/.config/copr
+          copr-cli build-package "$COPR_PROJECT" --name "$PACKAGE"

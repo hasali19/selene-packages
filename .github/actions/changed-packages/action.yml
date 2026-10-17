@@ -1,0 +1,30 @@
+name: Changed packages
+description: >-
+  Lists the packages changed between two commits as a JSON array.
+
+inputs:
+  base:
+    description: Commit to compare from.
+    default: ''
+  head:
+    description: Commit to compare to.
+    default: ${{ github.sha }}
+  rebuild-all-pattern:
+    description: Changes to a path matching this regex will affect all packages.
+    default: '^\.copr/'
+
+outputs:
+  packages:
+    description: JSON array of package names
+    value: ${{ steps.packages.outputs.packages }}
+
+runs:
+  using: composite
+  steps:
+    - id: packages
+      shell: bash
+      env:
+        BASE: ${{ inputs.base }}
+        HEAD: ${{ inputs.head }}
+        REBUILD_ALL_PATTERN: ${{ inputs.rebuild-all-pattern }}
+      run: bash "$GITHUB_ACTION_PATH/changed-packages.sh"

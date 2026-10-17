@@ -23,22 +23,11 @@ jobs:
           fetch-depth: 0
 
       - id: packages
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          all=$(printf '%s\n' ./*/*.spec | cut -d/ -f2)
-          if [ "${{ github.event_name }}" != pull_request ]; then
-            packages=$all
-          else
-            changed=$(git diff --name-only "$BASE_SHA...$HEAD_SHA")
-            if grep -qE '^(\.copr/|\.github/workflows/build\.yml$)' <<<"$changed"; then
-              packages=$all
-            else
-              packages=$(comm -12 <(cut -d/ -f1 <<<"$changed" | sort -u) <(sort <<<"$all"))
-            fi
-          fi
-          echo "packages=$(jq -cnR '[inputs | select(length > 0)]' <<<"$packages")" >> "$GITHUB_OUTPUT"
+        uses: ./.github/actions/changed-packages
+        with:
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha || github.sha }}
+          rebuild-all-pattern: '^(\.copr/|\.github/workflows/build\.yml$)'
 
   srpm:
     name: SRPM (${{ matrix.package }})
