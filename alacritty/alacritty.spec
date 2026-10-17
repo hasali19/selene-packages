@@ -1,6 +1,7 @@
 %bcond check 1
 
 Name:           alacritty
+# renovate: datasource=github-releases depName=alacritty/alacritty
 Version:        0.17.0
 Release:        %autorelease
 Summary:        Fast, cross-platform, OpenGL terminal emulator

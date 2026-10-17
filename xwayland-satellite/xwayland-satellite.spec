@@ -1,6 +1,7 @@
 %bcond check 1
 
 Name:           xwayland-satellite
+# renovate: datasource=github-releases depName=Supreeeme/xwayland-satellite
 Version:        0.8.3
 Release:        %autorelease
 Summary:        Rootless Xwayland integration for Wayland compositors

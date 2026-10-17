@@ -1,4 +1,5 @@
 Name:           noctalia
+# renovate: datasource=github-releases depName=noctalia-dev/noctalia
 Version:        5.2.1
 Release:        %autorelease
 ExcludeArch:    %{ix86}
