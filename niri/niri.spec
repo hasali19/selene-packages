@@ -107,12 +107,10 @@ Recommends:     xdg-desktop-portal-gtk
 
 # applications bound by keyboard shortcuts in default configuration
 Recommends:     alacritty
-Recommends:     fuzzel
-Recommends:     swaylock
 Recommends:     wireplumber
 
 # applications spawned at startup in default configuration
-Recommends:     waybar
+Recommends:     noctalia
 
 %description
 A scrollable-tiling Wayland compositor.
