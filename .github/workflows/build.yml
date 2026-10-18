@@ -34,7 +34,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.packages != '[]'
     runs-on: ubuntu-latest
-    container: registry.fedoraproject.org/fedora:44
+    container: registry.fedoraproject.org/fedora:46
     strategy:
       fail-fast: false
       matrix:
