@@ -10,6 +10,26 @@
         "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\nVersion:\\s*(?<currentValue>\\S+)"
       ],
       "extractVersionTemplate": "^v?(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Update commit and commitdate in spec files that track the head of a GitHub branch",
+      "managerFilePatterns": ["/\\.spec$/"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=github-commits\\s+depName=(?<depName>\\S+)\\s+branch=(?<branch>\\S+)\\s*\\n%global\\s+commit\\s+(?<currentDigest>[0-9a-f]{40})\\s*\\n%global\\s+commitdate\\s+(?<currentValue>\\S+)"
+      ],
+      "datasourceTemplate": "custom.github-commits",
+      "packageNameTemplate": "{{{depName}}}/commits/{{{branch}}}",
+      "versioningTemplate": "loose"
     }
-  ]
+  ],
+  "customDatasources": {
+    "github-commits": {
+      "description": "Head commit of a GitHub branch, versioned by its committer date (YYYYMMDD.HHMMSS) so that RPM versions always increase",
+      "defaultRegistryUrlTemplate": "https://api.github.com/repos/{{{packageName}}}",
+      "transformTemplates": [
+        "{\"releases\": [{\"version\": $replace($replace($substring(commit.committer.date, 0, 19), /[-:]/, \"\"), \"T\", \".\"), \"digest\": sha, \"releaseTimestamp\": commit.committer.date}], \"sourceUrl\": $replace(html_url, /\\/commit\\/.*$/, \"\")}"
+      ]
+    }
+  }
 }
