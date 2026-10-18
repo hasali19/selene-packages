@@ -55,8 +55,8 @@ License:        %{shrink:
 }
 # LICENSE.dependencies contains a full license breakdown
 
-URL:            https://github.com/niri-wm/niri
-Source0:        %{url}/archive/v%{version}/niri-%{version}.tar.gz
+URL:            https://github.com/hasali19/niri
+Source0:        %{url}/archive/%{commit}/niri-%{commit}.tar.gz
 
 Source1:        niri-%{commit}-vendor.tar.xz
 Source2:        vendor.toml
