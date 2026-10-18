@@ -50,7 +50,7 @@ jobs:
           outdir="$RUNNER_TEMP/srpm"
           spec="$GITHUB_WORKSPACE/${{ matrix.package }}/${{ matrix.package }}.spec"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: srpm-${{ matrix.package }}
           path: ${{ runner.temp }}/srpm/*.src.rpm
@@ -70,7 +70,7 @@ jobs:
           - name: almalinux-10
             image: docker.io/library/almalinux:10
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: srpm-${{ matrix.package }}
           path: srpm
@@ -88,7 +88,7 @@ jobs:
 
       - run: rpmbuild --rebuild --define "_rpmdir $PWD/rpms" srpm/*.src.rpm
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: rpms-${{ matrix.package }}-${{ matrix.chroot.name }}
           path: rpms/
