@@ -161,6 +161,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/dev.noctalia.Noctalia
 %license LICENSE*
 %{_bindir}/noctalia
 %{_datadir}/applications/dev.noctalia.Noctalia.desktop
+%{_datadir}/applications/dev.noctalia.Noctalia.Annotator.desktop
 %{_datadir}/icons/hicolor/scalable/apps/noctalia.svg
 %{_datadir}/noctalia
 %{bash_completions_dir}/noctalia
