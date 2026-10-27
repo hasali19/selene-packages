@@ -59,8 +59,6 @@ jobs:
     name: RPM (${{ matrix.package }}, ${{ matrix.chroot.name }})
     needs: [changes, srpm]
     runs-on: ubuntu-latest
-    # Build with mock, like Copr does. Mock needs to create mounts and
-    # namespaces for its chroot, hence the privileged container.
     container:
       image: registry.fedoraproject.org/fedora:44
       options: --privileged
@@ -68,9 +66,6 @@ jobs:
       fail-fast: false
       matrix:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
-        # Keep in sync with the chroots enabled in the hasali19/selene Copr
-        # project. Copr builds EL10 in rhel+epel-10, which needs a Red Hat
-        # subscription; alma+epel-10 is the closest freely available match.
         chroot:
           - name: fedora-44
             config: fedora-44-x86_64
