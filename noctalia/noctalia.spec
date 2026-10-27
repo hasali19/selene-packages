@@ -33,6 +33,10 @@ Source:         %{url}/archive/v%{version}/noctalia-%{version}.tar.gz
 BuildRequires:  meson
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
+%if 0%{?rhel} && 0%{?rhel} <= 10
+BuildRequires:  gcc-toolset-15
+%{?enable_gcctoolset15}
+%endif
 BuildRequires:  pkgconfig(sdbus-c++)
 BuildRequires:  pkgconfig(wayland-client)
 BuildRequires:  pkgconfig(wayland-protocols)
