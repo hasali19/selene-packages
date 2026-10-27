@@ -34,7 +34,8 @@ BuildRequires:  meson
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
 %if 0%{?rhel} && 0%{?rhel} <= 10
-BuildRequires:  gcc-toolset-15-gcc
+BuildRequires:  gcc-toolset-15-gcc-c++
+BuildRequires:  gcc-toolset-15-gcc-plugin-annobin
 %{?enable_gcctoolset15}
 %endif
 BuildRequires:  pkgconfig(sdbus-c++)
