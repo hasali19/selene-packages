@@ -59,41 +59,45 @@ jobs:
     name: RPM (${{ matrix.package }}, ${{ matrix.chroot.name }})
     needs: [changes, srpm]
     runs-on: ubuntu-latest
-    container: ${{ matrix.chroot.image }}
+    # Build with mock, like Copr does. Mock needs to create mounts and
+    # namespaces for its chroot, hence the privileged container.
+    container:
+      image: registry.fedoraproject.org/fedora:44
+      options: --privileged
     strategy:
       fail-fast: false
       matrix:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
+        # Keep in sync with the chroots enabled in the hasali19/selene Copr
+        # project. Copr builds EL10 in rhel+epel-10, which needs a Red Hat
+        # subscription; alma+epel-10 is the closest freely available match.
         chroot:
           - name: fedora-44
-            image: registry.fedoraproject.org/fedora:44
-          - name: almalinux-10
-            image: docker.io/library/almalinux:10
+            config: fedora-44-x86_64
+          - name: fedora-45
+            config: fedora-45-x86_64
+          - name: epel-10
+            config: alma+epel-10-x86_64
+            repos: https://repo.almalinux.org/almalinux/10/devel/$basearch/os/
     steps:
       - uses: actions/download-artifact@v8
         with:
           name: srpm-${{ matrix.package }}
           path: srpm
 
-      - if: startsWith(matrix.chroot.name, 'fedora-')
-        run: dnf -y install rpm-build redhat-rpm-config 'dnf5-command(builddep)'
+      - run: dnf -y install mock
 
-      - if: startsWith(matrix.chroot.name, 'almalinux-')
+      - env:
+          CONFIG: ${{ matrix.chroot.config }}
+          REPOS: ${{ matrix.chroot.repos }}
+        shell: bash
         run: |
-          dnf -y install epel-release dnf-plugins-core rpm-build
-          dnf config-manager --set-enabled crb
-          dnf config-manager --add-repo 'https://repo.almalinux.org/almalinux/$releasever/devel/$basearch/os/'
+          args=()
+          for repo in $REPOS; do args+=(--addrepo "$repo"); done
+          mock -r "$CONFIG" "${args[@]}" --resultdir rpms --rebuild srpm/*.src.rpm
 
-      # Unpack the SRPM and work from its spec, so that distro conditionals
-      # (e.g. %if 0%{?rhel}) in BuildRequires are evaluated for this chroot
-      # rather than for the Fedora host that built the SRPM.
-      - run: rpm -i srpm/*.src.rpm
-
-      - run: dnf -y builddep ~/rpmbuild/SPECS/*.spec
-
-      - run: rpmbuild -bb --define "_rpmdir $PWD/rpms" ~/rpmbuild/SPECS/*.spec
-
-      - uses: actions/upload-artifact@v7
+      - if: always()
+        uses: actions/upload-artifact@v7
         with:
           name: rpms-${{ matrix.package }}-${{ matrix.chroot.name }}
           path: rpms/
