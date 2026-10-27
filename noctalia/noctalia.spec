@@ -35,6 +35,8 @@ BuildRequires:  gcc
 BuildRequires:  gcc-c++
 %if 0%{?rhel} && 0%{?rhel} <= 10
 BuildRequires:  gcc-toolset-15
+# Not pulled in by gcc-toolset-15, but RPM's default build flags load it
+BuildRequires:  gcc-toolset-15-gcc-plugin-annobin
 %{?enable_gcctoolset15}
 %endif
 BuildRequires:  pkgconfig(sdbus-c++)
