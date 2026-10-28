@@ -1,6 +1,6 @@
 Name:           noctalia
 # renovate: datasource=github-releases depName=noctalia-dev/noctalia
-Version:        5.3.0
+Version:        5.4.0
 Release:        %autorelease
 ExcludeArch:    %{ix86}
 Summary:        A sleek, customizable desktop shell crafted for Wayland
@@ -33,6 +33,11 @@ Source:         %{url}/archive/v%{version}/noctalia-%{version}.tar.gz
 BuildRequires:  meson
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
+%if 0%{?rhel} && 0%{?rhel} <= 10
+BuildRequires:  gcc-toolset-15
+BuildRequires:  gcc-toolset-15-gcc-plugin-annobin
+%{?enable_gcctoolset15}
+%endif
 BuildRequires:  pkgconfig(sdbus-c++)
 BuildRequires:  pkgconfig(wayland-client)
 BuildRequires:  pkgconfig(wayland-protocols)
@@ -161,6 +166,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/dev.noctalia.Noctalia
 %license LICENSE*
 %{_bindir}/noctalia
 %{_datadir}/applications/dev.noctalia.Noctalia.desktop
+%{_datadir}/applications/dev.noctalia.Noctalia.Annotator.desktop
 %{_datadir}/icons/hicolor/scalable/apps/noctalia.svg
 %{_datadir}/noctalia
 %{bash_completions_dir}/noctalia

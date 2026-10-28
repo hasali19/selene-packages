@@ -59,36 +59,40 @@ jobs:
     name: RPM (${{ matrix.package }}, ${{ matrix.chroot.name }})
     needs: [changes, srpm]
     runs-on: ubuntu-latest
-    container: ${{ matrix.chroot.image }}
+    container:
+      image: registry.fedoraproject.org/fedora:44
+      options: --privileged
     strategy:
       fail-fast: false
       matrix:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
         chroot:
           - name: fedora-44
-            image: registry.fedoraproject.org/fedora:44
-          - name: almalinux-10
-            image: docker.io/library/almalinux:10
+            config: fedora-44-x86_64
+          - name: fedora-45
+            config: fedora-45-x86_64
+          - name: epel-10
+            config: alma+epel-10-x86_64
+            repos: https://repo.almalinux.org/almalinux/10/devel/$basearch/os/
     steps:
       - uses: actions/download-artifact@v8
         with:
           name: srpm-${{ matrix.package }}
           path: srpm
 
-      - if: startsWith(matrix.chroot.name, 'fedora-')
-        run: dnf -y install rpm-build redhat-rpm-config 'dnf5-command(builddep)'
+      - run: dnf -y install mock
 
-      - if: startsWith(matrix.chroot.name, 'almalinux-')
+      - env:
+          CONFIG: ${{ matrix.chroot.config }}
+          REPOS: ${{ matrix.chroot.repos }}
+        shell: bash
         run: |
-          dnf -y install epel-release dnf-plugins-core rpm-build
-          dnf config-manager --set-enabled crb
-          dnf config-manager --add-repo 'https://repo.almalinux.org/almalinux/$releasever/devel/$basearch/os/'
+          args=()
+          for repo in $REPOS; do args+=(--addrepo "$repo"); done
+          mock -r "$CONFIG" "${args[@]}" --resultdir rpms --rebuild srpm/*.src.rpm
 
-      - run: dnf -y builddep srpm/*.src.rpm
-
-      - run: rpmbuild --rebuild --define "_rpmdir $PWD/rpms" srpm/*.src.rpm
-
-      - uses: actions/upload-artifact@v7
+      - if: always()
+        uses: actions/upload-artifact@v7
         with:
           name: rpms-${{ matrix.package }}-${{ matrix.chroot.name }}
           path: rpms/
