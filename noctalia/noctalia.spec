@@ -1,6 +1,6 @@
 Name:           noctalia
 # renovate: datasource=github-releases depName=noctalia-dev/noctalia
-Version:        5.4.1
+Version:        5.5.0
 Release:        %autorelease
 ExcludeArch:    %{ix86}
 Summary:        A sleek, customizable desktop shell crafted for Wayland
