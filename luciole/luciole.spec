@@ -1,6 +1,5 @@
 %bcond check 1
 
-# renovate: datasource=github-commits depName=noctalia-dev/luciole branch=main
 %global commit      7095f57e52a6322bd59ed3911127c1498da40d92
 %global commitdate  20261121.030414
 %global shortcommit %{sub %{commit} 1 7}
