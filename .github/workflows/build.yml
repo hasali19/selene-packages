@@ -34,7 +34,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.packages != '[]'
     runs-on: ubuntu-latest
-    container: registry.fedoraproject.org/fedora:44
+    container: registry.fedoraproject.org/fedora:45
     strategy:
       fail-fast: false
       matrix:
@@ -60,15 +60,13 @@ jobs:
     needs: [changes, srpm]
     runs-on: ubuntu-latest
     container:
-      image: registry.fedoraproject.org/fedora:44
+      image: registry.fedoraproject.org/fedora:45
       options: --privileged
     strategy:
       fail-fast: false
       matrix:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
         chroot:
-          - name: fedora-44
-            config: fedora-44-x86_64
           - name: fedora-45
             config: fedora-45-x86_64
           - name: epel-10
