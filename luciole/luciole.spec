@@ -1,8 +1,8 @@
 %bcond check 1
 
 # renovate: datasource=github-commits depName=noctalia-dev/luciole branch=main
-%global commit      7095f57e52a6322bd59ed3911127c1498da40d92
-%global commitdate  20261121.030414
+%global commit      10caad6b598c0329fb639d66e1f2e1d19e294e2f
+%global commitdate  20261121.111725
 %global shortcommit %{sub %{commit} 1 7}
 
 Name:           luciole
