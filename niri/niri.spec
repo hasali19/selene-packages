@@ -1,8 +1,8 @@
 %bcond check 1
 
 # renovate: datasource=github-commits depName=hasali19/niri branch=main
-%global commit      c6078aabaa2ace63a4922718df8805d957b1dcd0
-%global commitdate  20261103.145316
+%global commit      f11790f081dc58e6bcaa50d99714c3aee0bc7768
+%global commitdate  20261121.111810
 %global shortcommit %{sub %{commit} 1 7}
 
 Name:           niri
