@@ -100,16 +100,36 @@ Requires:       sound-theme-freedesktop
 
 # Optional requirements for various functionality
 Recommends:     upower
+Recommends:     power-profiles-daemon
 Recommends:     ddcutil
-Recommends:     gnome-keyring
+Recommends:     (oo7-daemon or gnome-keyring or kf6-kwallet)
+Suggests:       oo7-daemon
+# dlopen-ed in src/render/core/heif_library.cpp
+Recommends:     libheif.so.1()(%{__isa_bits}bit)
 
-# Upstream doesn't currently offer a mechanism for building against system
-# copies of these libraries.
-Provides:       bundled(fzy)
-Provides:       bundled(luau)
-Provides:       bundled(material_color_utilities)
-Provides:       bundled(wuffs)
+# Upstream has an all-or-nothing system_libraries meson option for using system
+# copies of wuffs, fzy, material-color-utilities, and luau.  However, due to
+# various issues they're not packaged separately yet, so we'll keep them
+# bundled for now.
 
+# Not buildable as a shared library
+# https://github.com/jhawthorn/fzy/issues/151
+Provides:       bundled(fzy) = 1.1
+
+# Not buildable as a shared library, no stable ABI
+# https://github.com/luau-lang/luau/issues/1100
+Provides:       bundled(luau) = 0.742
+
+# No build system, no tags, and no external contributions accepted
+# https://github.com/material-foundation/material-color-utilities/issues/11
+Provides:       bundled(material-color-utilities) = 1a34bd2
+
+# Single file generated C code from a much larger project
+# https://github.com/google/wuffs/blob/main/release/c/wuffs-v0.4.c
+Provides:       bundled(wuffs) = 0.4.0.alpha.9
+
+# Some packages may require their DE/environment to provide a polkit agent
+Provides:     PolicyKit-authentication-agent
 
 %description
 Noctalia is a native Wayland desktop shell for people who want a polished,
@@ -118,7 +138,7 @@ notification daemon, lock screen, wallpaper tool, and settings UI.
 
 
 %prep
-%autosetup
+%autosetup -p 1
 
 # Remove shebangs and execute permissions from template apply scripts to avoid
 # rpmlint errors/warnings.
@@ -127,13 +147,13 @@ find assets/templates -type f -name '*.sh' \
     -exec chmod -x '{}' +
 
 # Move bundled licenses to the top level to make inclusion in %%files easier.
-mv assets/fonts/tabler-icons-license.txt        LICENSE.tabler
+mv lib/assets/fonts/tabler-icons-license.txt    LICENSE.tabler
+mv lib/third_party/wuffs/LICENSE-APACHE         LICENSE-Apache-2.0.wuffs
+mv lib/third_party/wuffs/LICENSE-MIT            LICENSE-MIT.wuffs
 mv third_party/fzy/LICENSE                      LICENSE.fzy
 mv third_party/luau/LICENSE.txt                 LICENSE.luau
 mv third_party/luau/lua_LICENSE.txt             LICENSE.luau_lua
 mv third_party/material_color_utilities/LICENSE LICENSE.material_color_utilities
-mv third_party/wuffs/LICENSE-APACHE             LICENSE-Apache-2.0.wuffs
-mv third_party/wuffs/LICENSE-MIT                LICENSE-MIT.wuffs
 
 
 %conf
@@ -165,6 +185,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/dev.noctalia.Noctalia
 %files
 %license LICENSE*
 %{_bindir}/noctalia
+%{_libexecdir}/noctalia
 %{_datadir}/applications/dev.noctalia.Noctalia.desktop
 %{_datadir}/applications/dev.noctalia.Noctalia.Annotator.desktop
 %{_datadir}/icons/hicolor/scalable/apps/noctalia.svg
